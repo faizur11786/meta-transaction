@@ -1,0 +1,87 @@
+{
+	"abi": [
+		{ "type": "constructor", "payable": false, "inputs": [{ "type": "address", "name": "forwarder" }] },
+		{
+			"type": "event",
+			"anonymous": false,
+			"name": "Registered",
+			"inputs": [
+				{ "type": "address", "name": "who", "indexed": true },
+				{ "type": "string", "name": "name", "indexed": false }
+			]
+		},
+		{
+			"type": "function",
+			"name": "isTrustedForwarder",
+			"constant": true,
+			"stateMutability": "view",
+			"payable": false,
+			"inputs": [{ "type": "address", "name": "forwarder" }],
+			"outputs": [{ "type": "bool" }]
+		},
+		{
+			"type": "function",
+			"name": "mint",
+			"constant": false,
+			"payable": false,
+			"inputs": [
+				{ "type": "address", "name": "token" },
+				{ "type": "uint256", "name": "amount" }
+			],
+			"outputs": []
+		},
+		{
+			"type": "function",
+			"name": "names",
+			"constant": true,
+			"stateMutability": "view",
+			"payable": false,
+			"inputs": [{ "type": "address" }],
+			"outputs": [{ "type": "string" }]
+		},
+		{
+			"type": "function",
+			"name": "owners",
+			"constant": true,
+			"stateMutability": "view",
+			"payable": false,
+			"inputs": [{ "type": "string" }],
+			"outputs": [{ "type": "address" }]
+		},
+		{
+			"type": "function",
+			"name": "register",
+			"constant": false,
+			"payable": false,
+			"inputs": [{ "type": "string", "name": "name" }],
+			"outputs": []
+		},
+		{
+			"type": "function",
+			"name": "transferFromToken",
+			"constant": false,
+			"payable": false,
+			"inputs": [
+				{ "type": "address", "name": "token" },
+				{ "type": "address", "name": "from" },
+				{ "type": "address", "name": "to" },
+				{ "type": "uint256", "name": "amount" }
+			],
+			"outputs": []
+		},
+		{
+			"type": "function",
+			"name": "transferToken",
+			"constant": false,
+			"payable": false,
+			"inputs": [
+				{ "type": "address", "name": "token" },
+				{ "type": "address", "name": "to" },
+				{ "type": "uint256", "name": "amount" }
+			],
+			"outputs": []
+		}
+	],
+	"address": "0x13109727b1A430dfccd63916cAC5E9E5BcDD61D1",
+	"blockNumber": null
+}

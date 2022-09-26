@@ -6,11 +6,7 @@ const { signTypedData, getMetaTxTypeData } = require('../utils');
 const { writeFileSync } = require('fs');
 
 describe('Registry', function () {
-	// We define a fixture to reuse the same setup in every test.
-	// We use loadFixture to run this setup once, snapshot that state,
-	// and reset Hardhat Network to that snapshot in every test.
 	async function deployOneYearLockFixture() {
-		// Contracts are deployed using the first signer/account by default
 		const [owner, signer, relay] = await ethers.getSigners();
 		const forwarder = await deploy('Forwarder');
 		let reciept = await forwarder.deployTransaction.wait();
@@ -20,6 +16,16 @@ describe('Registry', function () {
 
 		return { owner, signer, relay, forwarder, registry };
 	}
+	it('Should add Trusted Forwarder', async () => {
+		const { relay, forwarder, registry } = await loadFixture(deployOneYearLockFixture);
+		const tx = await forwarder.setTrustedForwarder(relay.address, true);
+		await tx.wait();
+	});
+	it('Is Trusted forwarder set', async () => {
+		const { forwarder, relay, owner } = await loadFixture(deployOneYearLockFixture);
+		console.log('forwarder', await forwarder.getTrustedForwarder(relay.address));
+		expect(await forwarder.getTrustedForwarder(relay.address)).to.be.true;
+	});
 	it('Should sign Transaction with Account[0]', async function () {
 		const { signer, forwarder, registry } = await loadFixture(deployOneYearLockFixture);
 		const message = 'Hello World!';
