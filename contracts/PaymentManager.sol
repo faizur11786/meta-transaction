@@ -46,53 +46,30 @@ contract PaymentManager is ERC2771Context {
         owner = newOwner;
         return true;
     }
+    
     function addRelayer(address _rey) external onlyOwner returns (bool) {
         isRelayer[_rey] = true;
         return true;
     }
 
-    function transfer(address token, address to, uint256 amount) public returns(bool)  {
-        IERC20(token).transfer(to, amount);
+    function transferFrom(address token, address from, address to, uint256 amount) public returns(bool) {
+        IERC20(token).transferFrom(from, to, amount);
         return true;
     }
 
-    function transferFrom(address token, address to, uint256 amount) public returns(bool) {
-        IERC20(token).transferFrom(_msgSender(), to, amount);
-        return true;
-    }
-
-    function approve(address token, uint256 amount) public returns(bool) {
-        IERC20(token).approve(address(this), amount);
-        return true;
-    }
-
-    function unlockAddress(
-        address[] memory tokens
-    ) public returns(bool) {
-
-        uint length = tokens.length;
-        for(uint i = 0; i < length; i++) {
-            IERC20(tokens[i]).approve(address(this), 1000000 * 1e18);
-        }
-        emit UnlockedAddress(tokens);
-        return true;
-    }
-
-    function call(address _target, bytes calldata _data) public onlyRelayer returns (bool, bytes memory) {
-        require(_msgSender() == owner || _msgSender() == address(this), "Not owner");
+    function call(address _target, bytes calldata _data) external onlyRelayer returns (bool, bytes memory) {
         (bool success, bytes memory result) = _target.call(_data);
         require(success, "call failed");
         emit Call(_msgSender(), _target, _data, block.timestamp);
         return (success, result);
     }
 
-    function multiCall(address[] calldata _targets, bytes[] calldata _data) public onlyRelayer returns (bool[] memory, bytes[] memory) {
-        require(_msgSender() == owner, "Not owner");
+    function multiCall(address[] calldata _targets, bytes[] calldata _data) external onlyRelayer returns (bool[] memory, bytes[] memory) {
         require(_targets.length == _data.length, "length not match");
         bool[] memory success = new bool[](_targets.length);
         bytes[] memory result = new bytes[](_targets.length);
         for (uint256 i = 0; i < _targets.length; i++) {
-            (success[i], result[i]) = call(_targets[i], _data[i]);
+            (success[i], result[i]) = _targets[i].call(_data[i]);
             require(success[i], "call failed");
         }
         emit MultiCall(_msgSender(), _targets, _data, block.timestamp);

@@ -18,6 +18,7 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 contract SimpleForwarder is EIP712, Ownable {
 
     using ECDSA for bytes32;
+    mapping(address => bool) public isRelayer;
 
     struct ForwardRequest  {
         address from;
@@ -28,23 +29,29 @@ contract SimpleForwarder is EIP712, Ownable {
         bytes data;
     }
 
-    bytes32 public constant _TYPE_HASH = keccak256("ForwardRequest(address from,address to,uint256 value,uint256 gas,uint256 nonce,bytes data)");
+    bytes32 private constant _TYPE_HASH = keccak256("ForwardRequest(address from,address to,uint256 value,uint256 gas,uint256 nonce,bytes data)");
 
     mapping(address => uint256 ) public _nonces;
 
     event Invoke(address indexed from, address indexed to, uint256 value, uint256 gas, bytes data, uint256 timestamp);
     event Execute(address indexed relayer, address indexed from, address indexed to, uint256 value, uint256 gas, bytes data, uint256 timestamp);
+    
+    modifier onlyRelayer() {
+        require(isRelayer[_msgSender()] == true, "PM: caller is not a relayer");
+        _;
+    }
 
-    constructor () Ownable() EIP712("SimpleForwarder", "1") {}
-
+    constructor () Ownable() EIP712("SimpleForwarder", "1") {
+        isRelayer[_msgSender()] = true;
+    }
+   
+    function addRelayer(address _rey) external onlyOwner returns (bool) {
+        isRelayer[_rey] = true;
+        return true;
+    }
 
     function getNonce(address from) public view returns(uint256){
         return _nonces[from];
-    }
-    
-
-    function methodData(string memory functionWithSignature) public pure returns(bytes32 typeHash){
-        typeHash = keccak256(abi.encodePacked(functionWithSignature));
     }
 
     function verify( ForwardRequest calldata req, bytes calldata signature ) public view returns(bool){
@@ -62,20 +69,7 @@ contract SimpleForwarder is EIP712, Ownable {
         return _nonces[req.from] == req.nonce && signer == req.from;
     }
 
-    function execute( ForwardRequest calldata req, bytes calldata signature) public payable returns(bool){
-        require(verify(req, signature), "Forwarder: signature does not match request");
-        _nonces[req.from] = req.nonce + 1;
-        (bool success,) = invoke(
-            req.to,
-            req.from,
-            req.value,
-            req.gas,
-            req.data
-        );
-        emit Execute(_msgSender(), req.from, req.to, req.value, req.gas,  req.data, block.timestamp);
-        return success;
-    }
-    function onlyOwnerExecute( ForwardRequest calldata req, bytes calldata signature) public payable onlyOwner returns(bool){
+    function execute( ForwardRequest calldata req, bytes calldata signature) public payable onlyRelayer returns(bool){
         require(verify(req, signature), "Forwarder: signature does not match request");
         _nonces[req.from] = req.nonce + 1;
         (bool success,) = invoke(
